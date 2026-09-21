@@ -1,4 +1,4 @@
-# Templete Projetos
+# Template Projetos
 
 Boilerplate interno para novos sistemas que se conectam ao mesmo banco
 Postgres **core** corporativo (usuários, cargos, filiais, setores e o motor
