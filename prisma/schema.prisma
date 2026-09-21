@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["app", "public"]
+}
+
+model usuarios {
+  id                         Int                          @id @default(autoincrement())
+  nome                       String?                      @db.VarChar
+  email                      String?                      @db.VarChar
+  cpf_cnpj                   String?                      @db.VarChar
+  celular                    String?                      @db.VarChar
+  login                      String?                      @db.VarChar
+  senha                      String?                      @db.VarChar
+  cargo_id                   Int?
+  setor_id                   Int?
+  filial_id                  Int?
+  status                     Boolean?
+  ultimo_login               DateTime?                    @db.Timestamptz(6)
+  origem_cadastro            String?                      @db.VarChar
+  criado_em                  DateTime?                    @db.Timestamptz(6)
+  atualizado_em              DateTime?                    @db.Timestamptz(6)
+  atualizado_por             String?                      @db.VarChar
+  sistemas                   Int[]
+  remuneracao                Float?                       @db.Real
+  cbo                        String?                      @db.VarChar
+  admissao                   DateTime?                    @db.Timestamp(6)
+  demissao                   DateTime?                    @db.Timestamp(6)
+  tipo_contrato              String?                      @db.VarChar
+  nivel                      String?                      @db.VarChar
+  endereco                   String?                      @db.VarChar
+  data_nascimento            DateTime?                    @db.Timestamp(6)
+  sessao_valida_apos         DateTime?                    @db.Timestamptz(6)
+  auditoria_acessos          auditoria_acessos[]
+  usuario_permissao_override usuario_permissao_override[]
+  usuario_sistema            usuario_sistema[]
+  cargos                     cargos?                      @relation(fields: [cargo_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios_cargo")
+  filiais                    filiais?                     @relation(fields: [filial_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios_filial")
+  setores                    setores?                     @relation(fields: [setor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios_setor")
+
+  @@schema("public")
+}
+
+model cargos {
+  id        Int        @id
+  cargo     String?    @db.VarChar
+  descricao String?    @db.VarChar
+  cbo       String?    @db.VarChar
+  usuarios  usuarios[]
+
+  @@schema("public")
+}
+
+model filiais {
+  id                  Int         @id
+  nome                String?     @db.VarChar
+  cnpj                String?     @db.VarChar
+  inscricao_estadual  String?     @db.VarChar
+  inscricao_municipal String?     @db.VarChar
+  razao_social        String?     @db.VarChar
+  telefone            String?     @db.VarChar
+  endereco            String?     @db.VarChar
+  celular             String?     @db.VarChar
+  municipio_id        Int?
+  sigla_empresa       String?     @db.VarChar(10)
+  sigla_local         String?     @db.VarChar(10)
+  municipios          municipios? @relation(fields: [municipio_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_filiais_municipio")
+  usuarios            usuarios[]
+
+  @@schema("public")
+}
+
+model setores {
+  id                                     Int        @id
+  nome                                   String?    @db.VarChar
+  sigla                                  String?    @db.VarChar(10)
+  sistemas_sistemas_responsavelTosetores sistemas[] @relation("sistemas_responsavelTosetores")
+  sistemas_sistemas_setorTosetores       sistemas[] @relation("sistemas_setorTosetores")
+  usuarios                               usuarios[]
+
+  @@schema("public")
+}
+
+model municipios {
+  id      Int       @id
+  nome    String?   @db.VarChar
+  uf_id   Int?
+  filiais filiais[]
+
+  @@schema("public")
+}
+
+model fornecedores {
+  id                      Int      @id @default(autoincrement())
+  categoria               String?  @db.VarChar(50)
+  nome_fantasia           String?  @db.VarChar(255)
+  razao_social            String?  @db.VarChar(255)
+  cnpj                    String?  @db.VarChar(20)
+  inscricao_estadual      String?  @db.VarChar(50)
+  inscricao_municipal     String?  @db.VarChar(50)
+  telefone                String?  @db.VarChar(20)
+  celular                 String?  @db.VarChar(20)
+  endereco                String?  @db.VarChar(255)
+  cep                     String?  @db.VarChar(15)
+  municipio_id            Int?
+  uf_id                   Int?
+  email                   String?  @db.VarChar(255)
+  responsavel             String?  @db.VarChar(255)
+  bloqueado               Boolean?
+  justificativa_bloqueado String?
+  agencia                 String?  @db.VarChar(20)
+  banco                   String?  @db.VarChar(100)
+  conta                   String?  @db.VarChar(30)
+  pix                     String?  @db.VarChar(255)
+  favorecido              String?  @db.VarChar(255)
+
+  @@schema("public")
+}
+
+model categorias {
+  id            Int             @id @default(autoincrement())
+  nome          String          @db.VarChar
+  subcategorias subcategorias[]
+
+  @@schema("public")
+}
+
+model subcategorias {
+  id                        Int         @id @default(autoincrement())
+  nome                      String      @db.VarChar
+  categoria_id              Int?
+  vida_util_anos            Int?
+  valor_residual_percentual Int?
+  sigla                     String?     @db.VarChar(10)
+  categorias                categorias? @relation(fields: [categoria_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "fk_subcategorias_categoria")
+
+  @@index([categoria_id], map: "idx_subcategorias_categoria_id")
+  @@schema("public")
+}
+
+model sistemas {
+  id                                    Int                          @id @default(autoincrement())
+  nome                                  String?                      @db.VarChar
+  descricao                             String?                      @db.VarChar
+  setor                                 Int?
+  url                                   String?                      @db.VarChar
+  responsavel                           Int?
+  tipo                                  String?                      @db.VarChar
+  ambiente                              String?                      @db.VarChar
+  status                                Boolean?
+  repo_git                              String?                      @db.VarChar
+  stack                                 String?                      @db.VarChar
+  ultima_atualizacao                    DateTime?                    @db.Timestamptz(6)
+  auditoria_acessos                     auditoria_acessos[]
+  perfil                                perfil[]
+  recurso                               recurso[]
+  setores_sistemas_responsavelTosetores setores?                     @relation("sistemas_responsavelTosetores", fields: [responsavel], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_sistema_responsavel")
+  setores_sistemas_setorTosetores       setores?                     @relation("sistemas_setorTosetores", fields: [setor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_sistema_setor")
+  usuario_permissao_override            usuario_permissao_override[]
+  usuario_sistema                       usuario_sistema[]
+
+  @@schema("public")
+}
+
+model perfil {
+  id               Int                @id @default(autoincrement())
+  perfil           String?            @db.VarChar
+  descricao        String?            @db.VarChar
+  sistema_id       Int?
+  sistemas         sistemas?          @relation(fields: [sistema_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_perfil_sistemas")
+  perfil_permissao perfil_permissao[]
+  usuario_sistema  usuario_sistema[]
+
+  @@schema("public")
+}
+
+model recurso {
+  id                         Int                          @id @default(autoincrement())
+  sistema_id                 Int
+  nome                       String                       @db.VarChar(100)
+  slug                       String                       @db.VarChar(100)
+  perfil_permissao           perfil_permissao[]
+  sistemas                   sistemas                     @relation(fields: [sistema_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_recurso_sistema")
+  usuario_permissao_override usuario_permissao_override[]
+
+  @@unique([sistema_id, slug], map: "uq_sistema_recurso")
+  @@schema("public")
+}
+
+model acao {
+  id                         Int                          @id @default(autoincrement())
+  nome                       String                       @db.VarChar(50)
+  slug                       String                       @unique @db.VarChar(50)
+  perfil_permissao           perfil_permissao[]
+  usuario_permissao_override usuario_permissao_override[]
+
+  @@schema("public")
+}
+
+model perfil_permissao {
+  id         Int     @id @default(autoincrement())
+  perfil_id  Int
+  recurso_id Int
+  acao_id    Int
+  acao       acao    @relation(fields: [acao_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_perf_perm_acao")
+  perfil     perfil  @relation(fields: [perfil_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_perf_perm_perfil")
+  recurso    recurso @relation(fields: [recurso_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_perf_perm_recurso")
+
+  @@unique([perfil_id, recurso_id, acao_id], map: "uq_perfil_recurso_acao")
+  @@schema("public")
+}
+
+model usuario_sistema {
+  id            Int       @id @default(autoincrement())
+  usuario_id    Int
+  sistema_id    Int
+  perfil_id     Int
+  ultimo_acesso DateTime? @db.Timestamptz(6)
+  perfil        perfil    @relation(fields: [perfil_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_sist_perfil")
+  sistemas      sistemas  @relation(fields: [sistema_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_sist_sistema")
+  usuarios      usuarios  @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_sist_usuario")
+
+  @@unique([usuario_id, sistema_id], map: "uq_usuario_sistema")
+  @@index([sistema_id, ultimo_acesso], map: "idx_usuario_sistema_ultimo_acesso")
+  @@schema("public")
+}
+
+model usuario_permissao_override {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  sistema_id Int
+  recurso_id Int
+  acao_id    Int
+  permitido  Boolean
+  acao       acao     @relation(fields: [acao_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_override_acao")
+  recurso    recurso  @relation(fields: [recurso_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_override_recurso")
+  sistemas   sistemas @relation(fields: [sistema_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_override_sistema")
+  usuarios   usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_override_usuario")
+
+  @@unique([usuario_id, sistema_id, recurso_id, acao_id], map: "uq_usuario_override_completo")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model auditoria_acessos {
+  id         Int      @id @default(autoincrement())
+  usuario_id Int
+  sistema_id Int
+  tipo       String   @db.VarChar(20)
+  criado_em  DateTime @default(now()) @db.Timestamptz(6)
+  sistemas   sistemas @relation(fields: [sistema_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios   usuarios @relation(fields: [usuario_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([sistema_id, criado_em(sort: Desc)], map: "idx_auditoria_acessos_sistema_criado")
+  @@index([usuario_id], map: "idx_auditoria_acessos_usuario")
+  @@schema("public")
+}
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model uf {
+// @@schema("public")
+// }
